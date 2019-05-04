@@ -56,7 +56,7 @@ def learning(dataset,date_full):
 	Y_test = Y_values[-test_size:]
 	Y_train = Y_values[:-test_size]
 	
-	# Creating a session of Tensor initialize the parameters
+	# SCreating a session of Tensor initialize the parameters
 	sess = tf.Session()
 	interval = 1
 	epoch = 5000
