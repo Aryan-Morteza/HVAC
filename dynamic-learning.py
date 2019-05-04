@@ -18,9 +18,11 @@ cnt = 0
 dataset_size = 0 														#size of dataset
 start_day_skipper = 0 													#indicate the days we need to skip
 dataset_size_limit = 500 												#indicate limitation size of dataset for learning
-								
+saving_add = "/home/aryan/Desktop/plots-cooling/"
+
 # Learning threat which is learning the Dataset we created before 
 def learning(dataset,date_full):
+
 	# Preprocessing for time show in plot
 	date_full = date_full - datetime.timedelta(hours = (date_full.hour - 6))
 	if date_full.minute > 30:
@@ -48,7 +50,6 @@ def learning(dataset,date_full):
 	
 	# Creating a train and a test dataset
 	test_size = (dataset.size/4)/5
-	#test_size = 1
 	X_test = X_values[-test_size:]
 	X_train = X_values[:-test_size]
 	Y_test = Y_values[-test_size:]
@@ -166,8 +167,8 @@ def learning(dataset,date_full):
 	plt.ylabel('Temperature (Celsius)')
 	plt.xticks(rotation=90)
 	plt.show(block=False)
-	plt.savefig("/home/wcl-lab/Desktop/plots-cooling/"+str(date_full).split(" ")[0]+".pdf", bbox_inches='tight')
-	plt.savefig("/home/wcl-lab/Desktop/plots-cooling/"+str(date_full).split(" ")[0]+".png", bbox_inches='tight')
+	plt.savefig(saving_add + str(date_full).split(" ")[0] +".pdf", bbox_inches='tight')
+	plt.savefig(saving_add + str(date_full).split(" ")[0] +".png", bbox_inches='tight')
 	plt.close()
 	tf.reset_default_graph()
 	print "Graph saved."
