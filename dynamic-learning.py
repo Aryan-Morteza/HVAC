@@ -56,7 +56,7 @@ def learning(dataset,date_full):
 	Y_test = Y_values[-test_size:]
 	Y_train = Y_values[:-test_size]
 	
-	# SCreating a session of Tensor initialize the parameters
+	# Creating a session of Tensor initialize the parameters
 	sess = tf.Session()
 	interval = 1
 	epoch = 5000
@@ -178,6 +178,7 @@ def learning(dataset,date_full):
 		#print last_pred,t,i
 		S.append(float(last_pred + dataset.iloc[0][0]))
 		R.append(str((date_full+datetime.timedelta(minutes=t)).strftime("%H:%M")))
+		pred = 0
 		if i > 1:
 			if last_pred - pred > 0 and last_pred - pred > 0.2:
 				cnt += 1
