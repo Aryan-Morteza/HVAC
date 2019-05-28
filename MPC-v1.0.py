@@ -3,13 +3,14 @@ import sys
 import time
 import math
 import sqlite3
+import datetime
 import numpy as np
 from time import sleep
 from scipy import signal
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from scipy.optimize import minimize
-
+###############################################################################################################
 def InputLogging(u):
 	ON_Time = 0
 	OFF_Time = 0
@@ -25,7 +26,7 @@ def InputLogging(u):
 	conn.commit()
 	print "Saved Commands Successfully to Database(Energy-Consumption)";
 	conn.close()
-
+###############################################################################################################
 def ReadMostUpdatedValue():
 	cmd = str("cp /home/aryan/HVAC/Data-set-Real-Time.db /home/aryan/HVAC/MostUpdatedValue.db")
 	os.system(cmd) 
@@ -57,7 +58,17 @@ def ReadMostUpdatedValue():
 	#H_avg = float(hum)/(number)	
 	print "New Data(Measured Output) Received"
 	return T_avg
-
+###############################################################################################################
+def DefaultSetpoint():
+	f = open('default-setpoint',"r+")
+	a = f.readlines()
+	for i in range(12):
+		b = a[i].split('=')
+		clock = b[0].split('-')
+		if (int(clock[0]) <= datetime.datetime.now().hour and datetime.datetime.now().hour < int(clock[1])):
+			b = b[1].split(' ')
+			return float(b[1])
+###############################################################################################################
 def MPC(Mode):
     # Process Model Parameters
     K = 8                   # Gain
@@ -81,7 +92,7 @@ def MPC(Mode):
     
     # Input Sequence
     u = np.zeros(ns+1)
-    y_init = 20             # Initial Temperature
+    y_init = 17             # Initial Temperature
     
     # Setpoint Sequence
     sp = np.zeros(ns+1+2*P)
@@ -129,6 +140,7 @@ def MPC(Mode):
             y_hat0 = y_hat[-1]
             yp_hat[k] = y_hat[0] + y_init
             # Squared Error Calculation
+            sp[i] = DefaultSetpoint()
             sp_hat[k] = sp[i] # send setpoint here
             delta_u_hat = np.zeros(2*P+1)        
             if k > P:
@@ -151,7 +163,7 @@ def MPC(Mode):
         ######Most Updated Value function######    
         #yp[i] = ReadMostUpdatedValue()
         y0 = yp[i]
-        print y0
+        print y0,sp[i]
         ####################################### 
         #######################################
         # Declare the variables in fuctions
@@ -206,7 +218,7 @@ def MPC(Mode):
         plt.legend()
         plt.pause(T_sampling)
     return u
-
+###############################################################################################################
 if __name__ == "__main__":
     while True:
         Input = MPC(Mode = "Warming")
