@@ -1,5 +1,8 @@
+import os
+import sys
 import time
 import math
+import sqlite3
 import numpy as np
 from time import sleep
 from scipy import signal
@@ -22,6 +25,38 @@ def InputLogging(u):
 	conn.commit()
 	print "Saved Commands Successfully to Database(Energy-Consumption)";
 	conn.close()
+
+def ReadMostUpdatedValue():
+	cmd = str("cp /home/aryan/HVAC/Data-set-Real-Time.db /home/aryan/HVAC/MostUpdatedValue.db")
+	os.system(cmd) 
+	conn = sqlite3.connect('MostUpdatedValue.db')
+	temp = 0
+	hum = 0
+	number = 0
+	f = True
+	while f:
+		try:
+			for i in range(11):		
+				ID = i	
+				sql=str("SELECT temperature,humidity from DATA WHERE id="+str(ID)+" ORDER BY last_valid_data DESC LIMIT 1")
+				cursor = conn.execute(sql)
+				for row in cursor:
+					temp = row[0] + temp
+					#hum = row[1] + hum
+					number += 1		
+			f = False	
+		except:
+			f = True
+			print "Failed to Fetch(Measured Output)..."
+			sleep(2)
+			os.system(cmd) 
+			conn = sqlite3.connect('MostUpdatedValue.db')
+			pass
+	conn.close()							
+	T_avg = float(temp)/(number)		
+	#H_avg = float(hum)/(number)	
+	print "New Data(Measured Output) Received"
+	return T_avg
 
 def MPC(Mode):
     # Process Model Parameters
@@ -113,9 +148,12 @@ def MPC(Mode):
         y_sim = odeint(Model_HVAC,0,t_sim) + y_init
         yp[i] = y_sim[i]  
         #######################################
-        ######Most Updated Value function######
-        #######################################          
+        ######Most Updated Value function######    
+        #yp[i] = ReadMostUpdatedValue()
         y0 = yp[i]
+        print y0
+        ####################################### 
+        #######################################
         # Declare the variables in fuctions
         t_hat = np.linspace(i-P,i+P,2*P+1)
         delta_t_hat = t_hat[1] - t_hat[0]
@@ -134,7 +172,7 @@ def MPC(Mode):
         print('Initial SSE Objective: ' + str(objective(u_hat0)))
         # Minimization Calculation
         start = time.time()
-        solution = minimize(objective,u_hat0,method='SLSQP',options={'maxiter': 1e10})
+        solution = minimize(objective,u_hat0,method='SLSQP',options={'maxiter': 1e2})
         u_hat = solution.x  
         end = time.time()
         elapsed = end - start
