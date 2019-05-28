@@ -229,5 +229,3 @@ if __name__ == "__main__":
             sleep(5)
         print "Preparing for Start... "    
         sleep(10)    
-    
-d
