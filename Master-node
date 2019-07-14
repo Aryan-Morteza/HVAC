@@ -1,0 +1,54 @@
+import requests
+import os
+import time
+import math
+import sqlite3
+import sys
+import numpy as np
+import datetime
+from time import sleep
+import dateutil.parser
+client_no = 6
+
+
+def ReadMostUpdatedValue():
+	cmd = str("cp /home/pi/Desktop/MostUpdatedValue.db /home/pi/Desktop/MostUpdatedValue2.db")
+	os.system(cmd) 
+	conn = sqlite3.connect('/home/pi/Desktop/MostUpdatedValue2.db')
+	temp = 0
+	hum = 0
+	number = 0
+	f = True
+	while f:
+		try:
+			for i in range(client_no):		
+				ID = i	
+				sql=str("SELECT TEMPERATURE,HUMIDITY from DATA WHERE id="+str(ID)+" ORDER BY last_valid_data DESC LIMIT 1")
+				cursor = conn.execute(sql)
+				for row in cursor:
+					temp = row[0] + temp
+					hum = row[1] + hum
+					number += 1		
+			f = False	
+		except:
+			f = True
+			print "Failed to Fetch(Measured Output)..."
+			sleep(2)
+			os.system(cmd) 
+			conn = sqlite3.connect('MostUpdatedValue2.db')
+			pass
+	conn.close()							
+	T_avg = float(temp)/(number)		
+	H_avg = float(hum)/(number)	
+	print "New Data(Measured Output) Received"
+	return T_avg,H_avg
+
+for i in xrange(100000):    
+    try:
+        T,H = ReadMostUpdatedValue()
+        print 'Temp',T,'Humidity',H
+        r = requests.post("http://192.168.40.101:3000/node/detaileds_sensors_data", data={"avg_temp": T,"avg_hum": H, "ID": 'node1', "date": })
+        print(r.status_code, r.reason,r.text)
+        date = dateutil.parser.parse(r.text)
+    except Exception as e:
+        print e
