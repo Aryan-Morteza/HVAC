@@ -12,6 +12,7 @@ client_no = 6
 
 
 def ReadMostUpdatedValue():
+    
 	cmd = str("cp /home/pi/Desktop/MostUpdatedValue.db /home/pi/Desktop/MostUpdatedValue2.db")
 	os.system(cmd) 
 	conn = sqlite3.connect('/home/pi/Desktop/MostUpdatedValue2.db')
@@ -43,12 +44,14 @@ def ReadMostUpdatedValue():
 	print "New Data(Measured Output) Received"
 	return T_avg,H_avg
 
+T,H = ReadMostUpdatedValue()
+
 for i in xrange(100000):    
     try:
-        T,H = ReadMostUpdatedValue()
         print 'Temp',T,'Humidity',H
-        r = requests.post("http://192.168.40.101:3000/node/detaileds_sensors_data", data={"avg_temp": T,"avg_hum": H, "ID": 'node1', "date": })
+        r = requests.post("http://192.168.40.101:3000/node/detaileds_sensors_data", data={"avg_temp": T,"avg_hum": H, "ID": 'node1', "date": datetime.datetime.now()})
         print(r.status_code, r.reason,r.text)
         date = dateutil.parser.parse(r.text)
+        sleep(1)
     except Exception as e:
         print e
